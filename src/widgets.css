@@ -1,0 +1,77 @@
+#zync-goto-widget {
+  --zync-widget-bg: #1f2937;
+  --zync-widget-border: #374151;
+  --zync-input-bg: #0f172a;
+  --zync-input-text: #e5e7eb;
+  --zync-button-bg: #2563eb;
+  --zync-button-bg-hover: #1d4ed8;
+  --zync-button-bg-active: #1e40af;
+  --zync-focus-ring: #93c5fd;
+}
+
+.monaco-editor .find-widget {
+  /* Monaco widget styles are highly specific; !important keeps this docked at top-right. */
+  top: 10px !important;
+  right: 10px !important;
+  left: auto !important;
+  max-width: min(90vw, 680px) !important;
+  position: absolute !important;
+  z-index: 20 !important;
+}
+
+#zync-goto-widget {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 21;
+  display: none;
+  gap: 8px;
+  align-items: center;
+  background: var(--zync-widget-bg);
+  border: 1px solid var(--zync-widget-border);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+#zync-goto-input {
+  width: 120px;
+  background: var(--zync-input-bg);
+  border: 1px solid var(--zync-widget-border);
+  color: var(--zync-input-text);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+#zync-goto-input:focus,
+#zync-goto-input:focus-visible {
+  outline: 2px solid var(--zync-focus-ring);
+  outline-offset: 1px;
+}
+
+#zync-goto-go {
+  border: 0;
+  border-radius: 6px;
+  background: var(--zync-button-bg);
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+#zync-goto-go:hover {
+  background: var(--zync-button-bg-hover);
+}
+
+#zync-goto-go:active {
+  background: var(--zync-button-bg-active);
+  transform: translateY(1px);
+}
+
+#zync-goto-go:focus,
+#zync-goto-go:focus-visible {
+  outline: 2px solid var(--zync-focus-ring);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 2px rgb(147 197 253 / 0.35);
+}
