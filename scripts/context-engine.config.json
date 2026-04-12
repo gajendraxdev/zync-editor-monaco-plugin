@@ -1,0 +1,17 @@
+{
+  "providers": ["completion", "hover", "definition"],
+  "languages": [
+    "javascript",
+    "typescript",
+    "python",
+    "rust",
+    "yaml",
+    "json",
+    "shell",
+    "html",
+    "css",
+    "markdown",
+    "sql"
+  ]
+}
+

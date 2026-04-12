@@ -1,7 +1,7 @@
 {
   "id": "com.zync.editor.monaco",
   "name": "Monaco Editor",
-  "version": "0.1.12",
+  "version": "0.2.4",
   "description": "IDE-style editor provider for Zync files.",
   "author": "Zync Team",
   "type": "editor-provider",
