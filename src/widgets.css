@@ -90,3 +90,55 @@
   outline-offset: 1px;
   box-shadow: 0 0 0 2px rgb(147 197 253 / 0.35);
 }
+
+/* --------------------------------------------------------------------------
+   Monaco widget border hardening
+
+   Some Monaco builds (especially when using the ESM "editor.api" entry)
+   can show unexpected focus outlines/borders on suggest/hover widgets.
+   Force these widgets to use theme-driven border colors.
+---------------------------------------------------------------------------- */
+
+.monaco-editor .suggest-widget {
+  border: 1px solid var(--vscode-editorSuggestWidget-border) !important;
+  outline: none !important;
+}
+
+.monaco-editor .suggest-widget:focus-within {
+  outline: none !important;
+}
+
+.monaco-editor .suggest-widget .monaco-list {
+  outline: none !important;
+}
+
+.monaco-editor .monaco-hover {
+  border: 1px solid var(--vscode-editorHoverWidget-border) !important;
+  outline: none !important;
+}
+
+.monaco-editor .monaco-hover .monaco-scrollable-element {
+  outline: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Collapsed range gutter toggle (custom)
+---------------------------------------------------------------------------- */
+
+.zync-collapsed-range-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zync-collapsed-range-glyph::before {
+  content: '▸';
+  font-size: 12px;
+  line-height: 1;
+  color: var(--vscode-editor-foreground);
+  opacity: 0.75;
+}
+
+.zync-collapsed-range-glyph:hover::before {
+  opacity: 1;
+}

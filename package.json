@@ -1,19 +1,21 @@
 {
   "name": "zync-editor-monaco-plugin",
-  "version": "0.1.12",
+  "version": "0.1.30",
   "private": true,
   "description": "Monaco editor-provider plugin for Zync with theme-follow + host messaging.",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "vite build && node ./scripts/generate-editor-html.mjs",
+    "build": "vite build && node ./scripts/generate-editor-html.mjs && node ./scripts/build-context-engine-assets.mjs && pwsh -NoProfile -File ./scripts/pack-plugin-zip.ps1",
     "type-check": "tsc --noEmit",
-    "smoke:shortcuts": "node ./scripts/smoke-shortcuts-checklist.mjs"
+    "smoke:shortcuts": "node ./scripts/smoke-shortcuts-checklist.mjs",
+    "pack": "pwsh -NoProfile -File ./scripts/pack-plugin-zip.ps1"
   },
   "dependencies": {
     "monaco-editor": "^0.52.2"
   },
   "devDependencies": {
+    "@enjoys/context-engine": "1.8.0",
     "typescript": "^5.8.3",
     "vite": "^6.4.1"
   }
