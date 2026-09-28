@@ -1,35 +1,59 @@
-name: Release
+name: Zedit release candidate
+
 on:
   push:
     tags:
-      - "v*"
-  workflow_dispatch:
+      - "zedit-v*"
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: zedit-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  release:
+  candidate:
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build + pack zip
-        run: npm run build
-
-      - name: Create GitHub Release (attach zip)
-        uses: softprops/action-gh-release@v2
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Verify tag and plugin version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/check-release-tag.mjs $env:RELEASE_TAG
+      - name: Type-check, build, test and validate package
+        run: npm run check
+      - uses: actions/upload-artifact@v4
         with:
-          files: artifacts/*.zip
-          generate_release_notes: true
+          name: zedit-unsigned-candidate
+          path: artifacts/zedit-*.zip
+          if-no-files-found: error
 
+  draft:
+    needs: candidate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: zedit-unsigned-candidate
+          path: candidate
+      - name: Create draft release for offline signing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'Release already exists. Refusing to replace its assets.' >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" candidate/zedit-*.zip --verify-tag --draft \
+            --title "Zedit ${RELEASE_TAG#zedit-v}" \
+            --notes 'Unsigned release candidate for publisher signing. Do not publish this draft or add it to the marketplace until the signed package has been verified and has replaced the candidate asset.'

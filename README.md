@@ -55,3 +55,9 @@ files with the pinned `@zync-sh/plugin-sdk` preflight validator.
 
 The legacy Monaco plugin can remain installed because Zedit has a separate plugin
 ID. Disable the legacy provider while testing to avoid choosing the wrong editor.
+
+## Releasing
+
+The `zedit-v<version>` tag workflow builds and checks a draft release candidate.
+Publisher signing and marketplace onboarding are separate; see [RELEASING.md](RELEASING.md)
+before pushing a release tag.
