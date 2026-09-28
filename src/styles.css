@@ -1,0 +1,197 @@
+:root {
+  color-scheme: dark;
+  --zedit-bg: var(--zui-background);
+  --zedit-surface: var(--zui-surface);
+  --zedit-border: var(--zui-border);
+  --zedit-text: var(--zui-text);
+  --zedit-muted: var(--zui-muted);
+  --zedit-accent: var(--zui-primary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#zedit-root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--zedit-bg);
+}
+
+#zedit-root {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 22px;
+}
+
+#editor-root {
+  min-width: 0;
+  min-height: 0;
+}
+
+#editor-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  min-width: 0;
+  padding: 0 12px;
+  border-top: 1px solid var(--zedit-border);
+  background: var(--zedit-surface);
+  color: var(--zedit-muted);
+  font: 11px/1 ui-sans-serif, system-ui, sans-serif;
+  user-select: none;
+}
+
+.monaco-editor,
+.monaco-editor .overflow-guard {
+  border-radius: 0;
+}
+
+.monaco-editor .margin {
+  border-right: 0;
+}
+
+.monaco-editor .find-widget {
+  top: 8px !important;
+  right: 10px !important;
+  max-width: min(640px, calc(100vw - 20px));
+  height: auto !important;
+  min-height: 38px;
+  padding: 5px 0 !important;
+  border: 1px solid var(--zedit-border) !important;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--zedit-surface) 96%, transparent) !important;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 28%) !important;
+  backdrop-filter: blur(12px);
+}
+
+.monaco-editor .find-widget > .find-part,
+.monaco-editor .find-widget > .replace-part {
+  min-width: 0;
+  min-height: 28px;
+  margin: 0 34px 0 30px !important;
+  align-items: center;
+  gap: 6px;
+}
+
+.monaco-editor .find-widget > .replace-part {
+  margin-top: 5px !important;
+}
+
+.monaco-editor .find-widget .monaco-findInput {
+  min-width: 96px;
+}
+
+.monaco-editor .find-widget .find-actions,
+.monaco-editor .find-widget .replace-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px !important;
+}
+
+.monaco-editor .find-widget .monaco-inputbox {
+  border: 1px solid var(--zedit-border) !important;
+  border-radius: 6px !important;
+  background: var(--zedit-bg) !important;
+}
+
+.monaco-editor .find-widget .monaco-inputbox.synthetic-focus {
+  border-color: var(--zedit-accent) !important;
+  outline: 1px solid color-mix(in srgb, var(--zedit-accent) 45%, transparent);
+  outline-offset: -1px;
+}
+
+.monaco-editor .find-widget .monaco-inputbox > .ibwrapper > .input {
+  height: 28px !important;
+  padding: 4px 8px !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  color: var(--zedit-text) !important;
+  outline: 0 !important;
+  font: 12px/20px ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.monaco-editor .find-widget .button,
+.monaco-editor .find-widget button {
+  flex: 0 0 26px;
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  color: var(--zedit-muted) !important;
+}
+
+.monaco-editor .find-widget .button:hover,
+.monaco-editor .find-widget button:hover {
+  background: color-mix(in srgb, var(--zedit-accent) 11%, transparent) !important;
+  color: var(--zedit-text) !important;
+}
+
+.monaco-editor .find-widget .button.checked,
+.monaco-editor .find-widget .button[aria-checked='true'] {
+  background: color-mix(in srgb, var(--zedit-accent) 16%, transparent) !important;
+  color: var(--zedit-accent) !important;
+}
+
+.monaco-editor .find-widget .matchesCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 24px;
+  margin: 0 2px !important;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--zedit-bg) 72%, transparent);
+  color: var(--zedit-muted) !important;
+  font: 11px/1.2 ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.monaco-editor .find-widget > .button.toggle {
+  top: 5px !important;
+  left: 4px !important;
+  width: 26px !important;
+  height: 28px !important;
+}
+
+.monaco-editor .find-widget > .button.codicon-widget-close {
+  top: 6px !important;
+  right: 5px !important;
+}
+
+.monaco-editor .find-widget .button:focus-visible,
+.monaco-editor .find-widget button:focus-visible {
+  outline: 1px solid var(--zedit-accent) !important;
+  outline-offset: -2px;
+}
+
+.monaco-editor .find-widget.reduced-find-widget > .find-part,
+.monaco-editor .find-widget.reduced-find-widget > .replace-part,
+.monaco-editor .find-widget.narrow-find-widget > .find-part,
+.monaco-editor .find-widget.narrow-find-widget > .replace-part {
+  gap: 2px;
+}
+
+@media (max-width: 520px) {
+  #editor-status {
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

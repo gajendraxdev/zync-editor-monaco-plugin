@@ -17,7 +17,7 @@ if (-not $version) { $version = "0.0.0" }
 
 New-Item -ItemType Directory -Force -Path $artifactsDir | Out-Null
 
-$zipPath = Join-Path $artifactsDir ("zync-editor-monaco-plugin-v{0}.zip" -f $version)
+$zipPath = Join-Path $artifactsDir ("zedit-{0}.zip" -f $version)
 if (Test-Path -LiteralPath $zipPath) {
   Remove-Item -LiteralPath $zipPath -Force
 }
@@ -26,4 +26,3 @@ if (Test-Path -LiteralPath $zipPath) {
 Compress-Archive -Force -DestinationPath $zipPath -Path $manifestPath, $editorHtmlPath, $distDir
 
 Write-Host ("[pack] Created {0}" -f (Split-Path -Leaf $zipPath))
-
