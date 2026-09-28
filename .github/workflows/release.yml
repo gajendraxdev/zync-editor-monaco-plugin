@@ -30,21 +30,76 @@ jobs:
         run: npm run check
       - uses: actions/upload-artifact@v4
         with:
-          name: zedit-unsigned-candidate
-          path: artifacts/zedit-*.zip
+          name: zedit-tested-payload
+          path: |
+            manifest.json
+            editor.html
+            dist/
           if-no-files-found: error
 
-  draft:
+  sign:
     needs: candidate
+    runs-on: ubuntu-latest
+    environment: plugin-release
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: zync-sh/zync
+          # Reviewed SDK signer; the published 2.1.0-beta.1 lacks signing.js.
+          ref: be072adffea6581e5307473108def88b999eb6aa
+          path: trusted-sdk
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          name: zedit-tested-payload
+          path: candidate
+      - name: Smoke-test pinned signer with a temporary key
+        env:
+          ZEDIT_SDK_SOURCE_ROOT: trusted-sdk
+        run: node --test tests/signReleaseSdk.test.mjs
+      - name: Sign and verify the tested payload
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          ZEDIT_PUBLISHER_PRIVATE_KEY: ${{ secrets.ZEDIT_PUBLISHER_PRIVATE_KEY }}
+          ZEDIT_PUBLISHER_KEY_PASSPHRASE: ${{ secrets.ZEDIT_PUBLISHER_KEY_PASSPHRASE }}
+          ZEDIT_PUBLISHER_KEY_ID: ${{ vars.ZEDIT_PUBLISHER_KEY_ID }}
+        run: node scripts/sign-release.mjs sign "$RELEASE_TAG" candidate signed trusted-sdk
+      - name: Archive and verify signed release again
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          ZEDIT_PUBLISHER_KEY_ID: ${{ vars.ZEDIT_PUBLISHER_KEY_ID }}
+        run: |
+          version="${RELEASE_TAG#zedit-v}"
+          mkdir release unpacked
+          (cd signed && zip -qr "../release/zedit-${version}-signed.zip" manifest.json editor.html dist integrity.json signature.json)
+          (cd release && sha256sum "zedit-${version}-signed.zip" > "zedit-${version}-signed.zip.sha256")
+          unzip -q "release/zedit-${version}-signed.zip" -d unpacked
+          node scripts/sign-release.mjs verify "$RELEASE_TAG" unpacked trusted-sdk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-zedit-release
+          path: release/
+          if-no-files-found: error
+
+  publish:
+    needs: sign
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: zedit-unsigned-candidate
-          path: candidate
-      - name: Create draft release for offline signing
+          name: verified-zedit-release
+          path: verified
+      - name: Publish verified signed release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -54,6 +109,6 @@ jobs:
             echo 'Release already exists. Refusing to replace its assets.' >&2
             exit 1
           fi
-          gh release create "$RELEASE_TAG" candidate/zedit-*.zip --verify-tag --draft \
+          gh release create "$RELEASE_TAG" verified/*-signed.zip verified/*-signed.zip.sha256 --verify-tag \
             --title "Zedit ${RELEASE_TAG#zedit-v}" \
-            --notes 'Unsigned release candidate for publisher signing. Do not publish this draft or add it to the marketplace until the signed package has been verified and has replaced the candidate asset.'
+            --notes 'Signed Zedit editor provider for Zync. Marketplace availability requires separate registry review and publication. A valid publisher signature establishes provenance and integrity, not plugin behavior safety.'

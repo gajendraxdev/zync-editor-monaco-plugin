@@ -58,6 +58,7 @@ ID. Disable the legacy provider while testing to avoid choosing the wrong editor
 
 ## Releasing
 
-The `zedit-v<version>` tag workflow builds and checks a draft release candidate.
-Publisher signing and marketplace onboarding are separate; see [RELEASING.md](RELEASING.md)
+The `zedit-v<version>` tag workflow checks, signs and publishes a verified
+GitHub release. Protected publisher-key setup and marketplace onboarding are
+separate; see [RELEASING.md](RELEASING.md)
 before pushing a release tag.

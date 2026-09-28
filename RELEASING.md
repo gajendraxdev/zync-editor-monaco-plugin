@@ -14,33 +14,38 @@ does not publish to `zync-sh` automatically.
 
 ## 2. Start the tagged workflow
 
-For version `0.1.0`, create `zedit-v0.1.0` on that merged commit and push the
-tag to the release repository. The tag workflow checks version consistency,
-runs the full plugin check and creates a **draft** GitHub release containing an
-unsigned candidate ZIP. It does not publish that candidate or put it into the
-marketplace. Do not reuse or move a release tag after publishing.
+Before tagging, configure a protected GitHub Actions environment named
+`plugin-release` in the repository that will host the release. Restrict it to
+the intended Zedit tags and require reviewer approval. Add:
 
-## 3. Sign the tested candidate
+- environment secret `ZEDIT_PUBLISHER_PRIVATE_KEY`: the complete Ed25519
+  publisher private PEM, not the registry root key;
+- optional environment secret `ZEDIT_PUBLISHER_KEY_PASSPHRASE` if that PEM is
+  encrypted;
+- environment variable `ZEDIT_PUBLISHER_KEY_ID`: the approved `sha256:...`
+  fingerprint for Zedit's publisher binding.
 
-Download the candidate ZIP from the draft release and expand it into a fresh
-directory outside the source repository. It must have `manifest.json`,
-`editor.html` and `dist/` at its root. Sign that exact candidate, not a new
-local build. The local Zync SDK signer accepts the existing `com.zync` publisher
-key; a separate key needs its own approval for this plugin. Keep the private
-key and signed output outside Git.
+The existing `com.zync` publisher key can be reused, but approval is scoped to
+the Zedit plugin/repository as well as the key. Do not print, commit or upload
+the private key. The signing job checks out the Zync SDK signer at a reviewed,
+full commit SHA because the currently pinned published SDK does not include
+`signing.js`; review and deliberately update that pin when changing signer code.
 
-```powershell
-node ..\zync\packages\plugin-sdk\bin\zync-plugin.mjs sign --source <candidate-directory> --key <publisher-private.pem> --out <new-signed-directory>
-node ..\zync\packages\plugin-sdk\bin\zync-plugin.mjs verify --source <new-signed-directory>
-```
+For version `0.1.0`, create `zedit-v0.1.0` on the merged release commit and
+push the tag to the release repository. The workflow checks version
+consistency, runs `npm run check`, signs the exact tested payload in the
+protected environment, verifies its signature and fingerprint, checks the
+archive after repacking, and publishes only the signed ZIP and its SHA-256
+checksum. The public publish job has no signing secret. Do not reuse or move a
+release tag after publication.
 
-Check the reported fingerprint against the approved key for **this plugin ID**.
-ZIP the *contents* of the signed directory, so `integrity.json` and
-`signature.json` are at the ZIP root, and verify the ZIP's extracted contents
-once more. Upload the signed ZIP to the draft release, remove its unsigned
-candidate ZIP, and publish the draft only after the signed asset and notes are
-reviewed. The currently pinned published SDK lacks unattended signing support,
-so this step is deliberately manual rather than exposing a key to the build job.
+## 3. Check the release
+
+Confirm the Actions run succeeded and the GitHub release contains only
+`zedit-<version>-signed.zip` and its `.sha256` file. Verify the downloaded ZIP
+with Zync's SDK signer or install it in a real Zync build. If the signing job
+fails, fix the environment or source and issue a new version/tag rather than
+replacing a published release asset with different bytes.
 
 ## 4. Marketplace is a separate publication
 

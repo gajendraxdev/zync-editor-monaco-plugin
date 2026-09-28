@@ -6,6 +6,8 @@ All notable changes to Zedit are documented here.
 
 ### Changed
 
+- Build and test tagged release candidates before signing them in a protected
+  CI environment; publish only signed archives verified again after packaging.
 - Align editor typography, gutter spacing, active-line treatment, minimap,
   scrollbars and status chrome with Zync's built-in file editor.
 - Use Monaco's integrated glyph and folding margin so line numbers, gutter
