@@ -1,21 +1,24 @@
 {
-  "name": "zync-editor-monaco-plugin",
-  "version": "0.1.30",
+  "name": "zedit",
+  "version": "0.1.0",
   "private": true,
-  "description": "Monaco editor-provider plugin for Zync with theme-follow + host messaging.",
+  "description": "A fast, native-feeling Monaco editor provider for Zync.",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "vite build && node ./scripts/generate-editor-html.mjs && node ./scripts/build-context-engine-assets.mjs && pwsh -NoProfile -File ./scripts/pack-plugin-zip.ps1",
+    "build": "vite build && node ./scripts/generate-editor-html.mjs && pwsh -NoProfile -File ./scripts/pack-plugin-zip.ps1",
     "type-check": "tsc --noEmit",
-    "smoke:shortcuts": "node ./scripts/smoke-shortcuts-checklist.mjs",
+    "test": "node --test",
+    "validate": "node ./scripts/validate-package.mjs",
+    "check": "npm run type-check && npm run build && npm test && npm run validate",
     "pack": "pwsh -NoProfile -File ./scripts/pack-plugin-zip.ps1"
   },
   "dependencies": {
     "monaco-editor": "^0.52.2"
   },
   "devDependencies": {
-    "@enjoys/context-engine": "1.8.0",
+    "@zync-sh/plugin-sdk": "2.1.0-beta.1",
+    "@zync-sh/plugin-ui": "0.1.0-beta.1",
     "typescript": "^5.8.3",
     "vite": "^6.4.1"
   }

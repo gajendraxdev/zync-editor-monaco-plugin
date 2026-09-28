@@ -1,63 +1,64 @@
-# zync-editor-monaco-plugin
+# Zedit
 
-Monaco editor-provider plugin for Zync.
+Zedit is a Monaco-powered editor provider for Zync. It is a new plugin identity,
+`com.zync.editor.zedit`, and does not replace or update the legacy
+`com.zync.editor.monaco` plugin.
 
-Current tested local artifact baseline: **v0.1.30**.
+## Architecture
 
-## Build
+The plugin deliberately keeps the host boundary small:
 
-```bash
-npm install
-npm run build
-npm run smoke:shortcuts # Optional: generate manual QA checklist
+- `bridge.ts` owns all communication with Zync.
+- `editorController.ts` owns the Monaco editor, active model and lifecycle.
+- `languages.ts` maps host language hints and filenames to Monaco languages.
+- `workers.ts` routes Monaco's native language workers lazily.
+- `theme.ts` applies validated `@zync-sh/plugin-ui` tokens and converts them
+  into a Monaco theme.
+- `commands.ts` contains host-facing editor commands.
+
+Only one text model is retained. Switching documents disposes the previous model.
+Edits are tracked by Monaco version rather than copying the full file to the
+host on each change. The host receives file content when saving; dirty-state
+messages are deduplicated, and every Monaco registration is disposed with the
+editor. TypeScript/JavaScript,
+JSON, HTML and CSS intelligence comes from Monaco itself. No external completion
+or context engine is bundled.
+
+For files of at least one million characters, Zedit uses plain-text mode and
+turns off the minimap, folding, suggestions and hover processing. Editing and
+saving remain available without starting a language worker for that file.
+On updated Zync builds the modified state clears only after Zync confirms a
+successful save; older builds retain their existing save behavior.
+
+The desktop file API still reads and writes complete files. Large-file mode
+reduces editor work and avoids per-edit document copies, but opening and saving
+very large files still require memory for the full file on both sides of the
+plugin boundary. A streaming file API would be needed to remove that limit.
+
+## Development
+
+```powershell
+npm ci
+npm run check
 ```
 
-Build output creates `editor.html` that references `dist/editor.js` + `dist/editor.css`.
-Zync loads the HTML via `srcDoc` and injects a base URL so the assets are fetched from disk
-(enabling WebView caching for faster repeat opens).
+The build produces `editor.html`, the files in `dist/`, and
+`artifacts/zedit-0.1.0.zip`. The release check also validates the packaged
+files with the pinned `@zync-sh/plugin-sdk` preflight validator.
 
-## Install in Zync (local QA)
+## Install for local testing
 
-1. Zip this folder with `manifest.json` at the zip root.
-2. In Zync open **Settings → Plugins → Developer**.
-3. Use **Install ZIP package** or **Install from folder**.
-4. Set default editor to **Monaco** and open a file.
+1. Run `npm run build`.
+2. Open **Settings → Plugins → Developer** in Zync.
+3. Install `artifacts/zedit-0.1.0.zip`.
+4. Choose **Zedit** as the default editor and open a text file.
 
-## Current scope
+The legacy Monaco plugin can remain installed because Zedit has a separate plugin
+ID. Disable the legacy provider while testing to avoid choosing the wrong editor.
 
-- Host bridge wiring (`zync:editor:*` messages)
-- Open/update/focus/dispose document lifecycle
-- Change + dirty + save-request + request-close events
-- Theme-follow support via `zync:editor:set-theme`
-- Optional context-engine language intelligence (completion/hover/definition) loaded lazily from
-  local `dist/context-engine/*` assets generated at build time from the npm package `@enjoys/context-engine`.
-- Shortcut map centralized in `src/shortcuts.ts`
-- Widget styles centralized in `src/widgets.css`
+## Releasing
 
-## Context-engine language intelligence
-
-This plugin can provide lightweight completions / hover / definition without an LSP server.
-The packs are generated at build time and shipped inside the plugin zip:
-
-```bash
-npm install
-npm run build
-```
-
-Runtime behavior:
-- Enabled by default for supported languages (see `src/main.ts` → `ensureContextEngine()` call on open-document).
-- Disable (opt-out):
-```js
-localStorage.setItem('zync.monaco.disableContextEngine', '1')
-```
-- Debug: `localStorage.setItem('zync.debug.contextEngine', '1')`
-
-## Monaco widget CSS variable overrides (red-border hardening)
-
-Some Monaco builds can show unexpected focus outlines/borders on hover/suggest widgets.
-To keep UX consistent, the plugin sets a handful of `--vscode-*` CSS variables with `!important`.
-
-Opt-out (integrators):
-```js
-localStorage.setItem('zync.monaco.disableCssVarOverrides', '1')
-```
+The `zedit-v<version>` tag workflow checks, signs and publishes a verified
+GitHub release. Protected publisher-key setup and marketplace onboarding are
+separate; see [RELEASING.md](RELEASING.md)
+before pushing a release tag.
