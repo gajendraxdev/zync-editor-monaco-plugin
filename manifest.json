@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "id": "com.zync.editor.zedit",
   "name": "Zedit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A fast, full-featured code editor powered by Monaco.",
   "author": "Zync Team",
   "publisher": "com.zync",

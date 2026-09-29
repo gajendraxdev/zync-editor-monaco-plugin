@@ -1,7 +1,7 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { registerCommands } from './commands';
-import { createModelUri, languageLabel, resolveLanguage } from './languages';
-import type { EditorDocument } from './types';
+import { createModelUri, resolveLanguage } from './languages';
+import type { EditorDocument, EditorHostCommand } from './types';
 import { ZyncBridge } from './bridge';
 import { DocumentLifecycle } from './documentLifecycle';
 
@@ -11,8 +11,6 @@ export class EditorController {
   readonly #bridge: ZyncBridge;
   readonly #editor: monaco.editor.IStandaloneCodeEditor;
   readonly #disposables: monaco.IDisposable[] = [];
-  readonly #positionElement: HTMLElement;
-  readonly #languageElement: HTMLElement;
   readonly #lifecycle = new DocumentLifecycle();
 
   #model: monaco.editor.ITextModel | null = null;
@@ -22,16 +20,13 @@ export class EditorController {
   #saveResultsSupported = false;
   #applyingHostUpdate = false;
   #disposed = false;
+  #lastStatusKey = '';
 
   constructor(
     container: HTMLElement,
-    positionElement: HTMLElement,
-    languageElement: HTMLElement,
     bridge: ZyncBridge,
   ) {
     this.#bridge = bridge;
-    this.#positionElement = positionElement;
-    this.#languageElement = languageElement;
     this.#editor = monaco.editor.create(container, {
       model: null,
       automaticLayout: true,
@@ -92,7 +87,7 @@ export class EditorController {
     this.#disposables.push(
       this.#editor.onDidChangeModelContent(() => this.#handleContentChange()),
       this.#editor.onDidChangeCursorPosition(({ position }) => {
-        this.#positionElement.textContent = `Ln ${position.lineNumber}, Col ${position.column}`;
+        this.#reportStatus(position);
       }),
       ...registerCommands(this.#editor, {
         save: () => this.save(),
@@ -134,7 +129,6 @@ export class EditorController {
     if (!reuseModel) previousModel?.dispose();
 
     this.#setDirty(false);
-    this.#positionElement.textContent = 'Ln 1, Col 1';
     requestAnimationFrame(() => this.focus());
   }
 
@@ -168,8 +162,28 @@ export class EditorController {
     this.#saveResultsSupported = supported;
   }
 
+  get docId(): string | null {
+    return this.#lifecycle.docId;
+  }
+
   focus(): void {
     this.#editor.focus();
+  }
+
+  async runCommand(command: EditorHostCommand): Promise<void> {
+    switch (command) {
+      case 'save':
+        this.save();
+        return;
+      case 'find':
+        await this.#runFocusedAction('actions.find');
+        return;
+      case 'find-replace':
+        await this.#runFocusedAction('editor.action.startFindReplaceAction');
+        return;
+      case 'goto-line':
+        await this.#runFocusedAction('editor.action.gotoLine');
+    }
   }
 
   save(): void {
@@ -206,6 +220,21 @@ export class EditorController {
     }
   }
 
+  async #runFocusedAction(actionId: string): Promise<void> {
+    // Clicking Zync's host toolbar focuses the parent document. Monaco quick
+    // input actions require text focus inside this iframe before they open.
+    const docId = this.#lifecycle.docId;
+    if (!docId) return;
+    this.focus();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    this.#assertActive();
+    if (!this.#lifecycle.isCurrentDocument(docId)) return;
+    this.focus();
+    const action = this.#editor.getAction(actionId);
+    if (!action) throw new Error(`Editor action is unavailable: ${actionId}`);
+    await action.run();
+  }
+
   #setLargeDocumentMode(large: boolean): void {
     this.#largeDocument = large;
     if (this.#model) {
@@ -214,7 +243,6 @@ export class EditorController {
         monaco.editor.setModelLanguage(this.#model, modelLanguage);
       }
     }
-    this.#languageElement.textContent = large ? 'Plain Text · Large file mode' : languageLabel(this.#language);
     this.#editor.updateOptions({
       bracketPairColorization: { enabled: !large },
       codeLens: !large,
@@ -225,12 +253,30 @@ export class EditorController {
       stickyScroll: { enabled: !large },
       suggestOnTriggerCharacters: !large,
     });
+    this.#reportStatus(this.#editor.getPosition());
+  }
+
+  #reportStatus(position: monaco.Position | null): void {
+    const docId = this.#lifecycle.docId;
+    if (!docId || !position) return;
+    const language = this.#model?.getLanguageId()
+      ?? (this.#largeDocument ? 'plaintext' : this.#language);
+    const statusKey = `${docId}:${position.lineNumber}:${position.column}:${language}`;
+    if (statusKey === this.#lastStatusKey) return;
+    this.#lastStatusKey = statusKey;
+    this.#bridge.status({
+      docId,
+      line: position.lineNumber,
+      column: position.column,
+      language,
+    });
   }
 
   #setDirty(dirty: boolean): void {
     if (dirty === this.#dirty) return;
     this.#dirty = dirty;
-    this.#bridge.dirtyChanged(dirty, this.#lifecycle.docId ?? undefined);
+    const docId = this.#lifecycle.docId;
+    if (docId) this.#bridge.dirtyChanged(dirty, docId);
   }
 
   #assertActive(): void {

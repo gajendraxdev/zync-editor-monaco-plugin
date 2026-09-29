@@ -4,8 +4,15 @@ All notable changes to Zedit are documented here.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-30
+
 ### Changed
 
+- Accept shared-toolbar commands from Zync for save, find/replace and
+  go-to-line, keeping editor controls consistent without duplicating them in
+  the plugin document.
+- Publish cursor position and active language through Zync's shared bottom
+  status bar, removing Zedit's duplicate in-frame status footer.
 - Require Zync 2.33.9 or newer so editor CSS, scripts, fonts and workers load
   through the manifest-bound isolated resource route in packaged builds.
 - Validate release packages with `@zync-sh/plugin-sdk` 2.1.0-beta.2.
@@ -20,6 +27,9 @@ All notable changes to Zedit are documented here.
 
 ### Fixed
 
+- Restore Monaco text focus before opening host-triggered Go to Line or
+  Find/Replace controls, preventing its quick-input service warning. Cancel a
+  queued toolbar action if another document opens during the focus handoff.
 - Keep unsaved edits marked as modified until updated Zync hosts confirm the
   save; retain the existing best-effort behavior on older hosts. Preserve
   changes made while a save is in progress or a file is switching.

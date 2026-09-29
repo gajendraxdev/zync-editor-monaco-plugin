@@ -1,4 +1,4 @@
-import type { HostBridge, HostMessage } from './types';
+import type { EditorStatusReport, HostBridge, HostMessage } from './types';
 
 const isHostMessage = (value: unknown): value is HostMessage => {
   if (!value || typeof value !== 'object') return false;
@@ -28,8 +28,12 @@ export class ZyncBridge {
     this.#host.emitChange({ docId, content });
   }
 
-  dirtyChanged(dirty: boolean, docId?: string): void {
+  dirtyChanged(dirty: boolean, docId: string): void {
     this.#host.emitDirtyChange(dirty, docId);
+  }
+
+  status(report: EditorStatusReport): void {
+    this.#host.reportStatus(report);
   }
 
   save(content: string, request: { docId: string; requestId: number }): void {

@@ -74,8 +74,6 @@ const start = (): void => {
   const announceReady = (): void => bridge.ready([...supportedCapabilities]);
   const controller = new EditorController(
     requiredElement('editor-root'),
-    requiredElement('status-position'),
-    requiredElement('status-language'),
     bridge,
   );
 
@@ -107,6 +105,17 @@ const start = (): void => {
           break;
         case 'zync:editor:save-result':
           controller.saveResult(message.payload);
+          break;
+        case 'zync:editor:command':
+          if (message.payload?.docId === undefined ||
+              message.payload.docId === controller.docId) {
+            const command = message.payload?.command;
+            if (command) {
+              void controller.runCommand(command).catch((error) => {
+                bridge.error('ZEDIT_COMMAND_FAILED', error);
+              });
+            }
+          }
           break;
         case 'zync:editor:set-theme':
           applyTheme(message.payload);

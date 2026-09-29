@@ -64,6 +64,30 @@ test('the editor repeats its ready signal when the host bootstraps the frame', a
 
   assert.match(source, /case 'zync:editor:bootstrap':/);
   assert.match(source, /announceReady\(\);/);
+  assert.match(source, /case 'zync:editor:command':/,
+    'the editor must accept commands from Zync\'s shared toolbar');
+});
+
+test('host toolbar actions restore Monaco focus before opening quick input', async () => {
+  const source = await readFile('src/editorController.ts', 'utf8');
+
+  assert.match(source, /#runFocusedAction\(actionId: string\)[\s\S]*?const docId = this\.#lifecycle\.docId;[\s\S]*?this\.focus\(\);[\s\S]*?requestAnimationFrame[\s\S]*?this\.#assertActive\(\);[\s\S]*?isCurrentDocument\(docId\)[\s\S]*?this\.focus\(\);[\s\S]*?action\.run\(\)/,
+    'quick-input actions must keep their original document identity across the focus handoff');
+});
+
+test('cursor and language status use the Zync status bar', async () => {
+  const bridge = await readFile('src/bridge.ts', 'utf8');
+  const controller = await readFile('src/editorController.ts', 'utf8');
+  const template = await readFile('src/editor-shell.html', 'utf8');
+  const generatedEntry = await readFile('editor.html', 'utf8');
+  const types = await readFile('src/types.ts', 'utf8');
+
+  assert.match(types, /@zync-sh\/plugin-sdk\/editor/);
+  assert.match(bridge, /this\.#host\.reportStatus\(report\)/);
+  assert.match(controller, /onDidChangeCursorPosition[\s\S]*?#reportStatus\(position\)/);
+  assert.match(controller, /this\.#bridge\.status\(\{[\s\S]*?line: position\.lineNumber,[\s\S]*?column: position\.column,[\s\S]*?language,/);
+  assert.doesNotMatch(template, /editor-status|status-position|status-language/);
+  assert.doesNotMatch(generatedEntry, /editor-status|status-position|status-language/);
 });
 
 test('language workers are converted to same-frame blob workers on demand', async () => {

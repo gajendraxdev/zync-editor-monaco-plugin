@@ -1,3 +1,5 @@
+import type { ZyncEditorBridge, ZyncEditorStatus } from '@zync-sh/plugin-sdk/editor';
+
 export interface ThemeColors {
   background?: string;
   surface?: string;
@@ -20,6 +22,10 @@ export interface EditorDocument {
   readOnly?: boolean;
 }
 
+export type EditorStatusReport = ZyncEditorStatus & { language: string };
+
+export type EditorHostCommand = 'save' | 'find' | 'find-replace' | 'goto-line';
+
 export type HostMessage =
   | { type: 'zync:editor:bootstrap'; payload?: Record<string, never> }
   | { type: 'zync:editor:init'; payload?: { pluginId?: string; theme?: ThemePayload; saveResults?: boolean } }
@@ -27,19 +33,12 @@ export type HostMessage =
   | { type: 'zync:editor:update-document'; payload?: Pick<Partial<EditorDocument>, 'docId' | 'content'> }
   | { type: 'zync:editor:set-readonly'; payload?: { docId?: string; readOnly?: boolean } }
   | { type: 'zync:editor:save-result'; payload?: { docId?: string; requestId?: number; ok?: boolean } }
+  | { type: 'zync:editor:command'; payload?: { docId?: string; command?: EditorHostCommand } }
   | { type: 'zync:editor:set-theme'; payload?: ThemePayload }
   | { type: 'zync:editor:focus' }
   | { type: 'zync:editor:dispose' };
 
-export interface HostBridge {
-  onMessage(callback: (message: unknown) => void): () => void;
-  emitReady(payload?: unknown): void;
-  emitChange(payload?: unknown): void;
-  emitDirtyChange(dirty: boolean, docId?: string): void;
-  requestSave(content: string, request?: { docId: string; requestId: number }): void;
-  requestClose(): void;
-  reportError(code: string, message: string, fatal?: boolean): void;
-}
+export type HostBridge = ZyncEditorBridge;
 
 declare global {
   interface Window {
