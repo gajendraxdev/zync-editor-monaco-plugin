@@ -27,6 +27,8 @@ All notable changes to Zedit are documented here.
 
 ### Fixed
 
+- Keep the pinned-SDK signing smoke test synchronized with the release
+  manifest instead of hardcoding the previous package version.
 - Restore Monaco text focus before opening host-triggered Go to Line or
   Find/Replace controls, preventing its quick-input service warning. Cancel a
   queued toolbar action if another document opens during the focus handoff.

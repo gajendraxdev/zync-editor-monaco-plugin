@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync } from 'node:crypto';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -10,6 +10,10 @@ import { signRelease, verifyRelease } from '../scripts/sign-release.mjs';
 test('pinned SDK signs and verifies a Zedit candidate', {
   skip: !process.env.ZEDIT_SDK_SOURCE_ROOT,
 }, async () => {
+  const releaseManifest = JSON.parse(readFileSync(
+    new URL('../manifest.json', import.meta.url),
+    'utf8',
+  ));
   const root = mkdtempSync(path.join(tmpdir(), 'zedit-sdk-signing-test-'));
   try {
     const candidate = path.join(root, 'candidate');
@@ -19,7 +23,7 @@ test('pinned SDK signs and verifies a Zedit candidate', {
       manifestVersion: 2,
       id: 'com.zync.editor.zedit',
       publisher: 'com.zync',
-      version: '0.1.0',
+      version: releaseManifest.version,
     }));
     writeFileSync(path.join(candidate, 'editor.html'), '<p>fixture</p>');
     writeFileSync(path.join(candidate, 'dist/editor.js'), '/* fixture */');
@@ -28,7 +32,7 @@ test('pinned SDK signs and verifies a Zedit candidate', {
     const publicBytes = Buffer.from(publicKey.export({ format: 'jwk' }).x, 'base64url');
     const expectedKeyId = `sha256:${createHash('sha256').update(publicBytes).digest('hex')}`;
     const sdkRoot = process.env.ZEDIT_SDK_SOURCE_ROOT;
-    const tag = 'zedit-v0.1.0';
+    const tag = `zedit-v${releaseManifest.version}`;
     const result = await signRelease({
       tag, candidate, output: signed, sdkRoot,
       privatePem: privateKey.export({ format: 'pem', type: 'pkcs8' }).toString(),
