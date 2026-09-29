@@ -27,9 +27,11 @@ test('the build has no external context engine', async () => {
 });
 
 test('the plugin uses pinned Zync authoring and UI packages', async () => {
+  const manifest = await json('manifest.json');
   const packageJson = await json('package.json');
 
-  assert.equal(packageJson.devDependencies['@zync-sh/plugin-sdk'], '2.1.0-beta.1');
+  assert.equal(packageJson.devDependencies['@zync-sh/plugin-sdk'], '2.1.0-beta.2');
+  assert.equal(manifest.engines.zync, '>=2.33.9');
   assert.equal(packageJson.devDependencies['@zync-sh/plugin-ui'], '0.1.0-beta.1');
 });
 

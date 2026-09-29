@@ -10,7 +10,7 @@
   "homepage": "https://github.com/zync-sh/zync-editor-monaco-plugin",
   "support": "https://github.com/zync-sh/zync-editor-monaco-plugin/issues",
   "engines": {
-    "zync": ">=2.32.2",
+    "zync": ">=2.33.9",
     "pluginApi": "^2.0.0"
   },
   "permissions": {

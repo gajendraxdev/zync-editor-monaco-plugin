@@ -17,7 +17,7 @@
     "monaco-editor": "^0.52.2"
   },
   "devDependencies": {
-    "@zync-sh/plugin-sdk": "2.1.0-beta.1",
+    "@zync-sh/plugin-sdk": "2.1.0-beta.2",
     "@zync-sh/plugin-ui": "0.1.0-beta.1",
     "typescript": "^5.8.3",
     "vite": "^6.4.1"

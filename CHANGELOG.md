@@ -6,6 +6,9 @@ All notable changes to Zedit are documented here.
 
 ### Changed
 
+- Require Zync 2.33.9 or newer so editor CSS, scripts, fonts and workers load
+  through the manifest-bound isolated resource route in packaged builds.
+- Validate release packages with `@zync-sh/plugin-sdk` 2.1.0-beta.2.
 - Build and test tagged release candidates before signing them in a protected
   CI environment; publish only signed archives verified again after packaging.
 - Align editor typography, gutter spacing, active-line treatment, minimap,
